@@ -89,4 +89,41 @@
 
 ## TASK ENDPOINTS
 
-> _To be added in feature/tasks phase_
+### POST /tasks
+- **Auth:** Yes (must be team member)
+- **Body:**
+```json
+{
+  "title": "Fix login bug",
+  "description": "optional",
+  "status": "todo",
+  "priority": "high",
+  "due_date": "2025-12-31",
+  "team_id": 1,
+  "assigned_to": 2
+}
+```
+- **201:** Returns created task object
+- **403:** Not a member of the team
+- **422:** Validation errors
+
+### GET /tasks
+- **Auth:** Yes
+- **Query params:** `?teamId=1&assignedTo=2&status=todo` (all optional)
+- **200:** Returns tasks in teams the user belongs to, filtered dynamically
+```json
+{ "success": true, "data": [{ "id": 1, "title": "Fix login bug", "status": "todo", "priority": "high", "assigned_to_name": "Ali Khan", ... }] }
+```
+
+### PUT /tasks/:id
+- **Auth:** Yes (must be team member)
+- **Body:** Any subset of task fields
+- **200:** Returns updated task object
+- **403:** Not a member of the task's team
+- **404:** Task not found
+
+### DELETE /tasks/:id
+- **Auth:** Yes (must be task creator or team admin)
+- **200:** `{ "success": true, "message": "Task deleted" }`
+- **403:** Not creator or admin
+- **404:** Task not found
