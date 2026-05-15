@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import TeamPage from './pages/TeamPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -16,6 +17,11 @@ export default function App() {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <DashboardPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/teams/:id" element={
+        <ProtectedRoute>
+          <TeamPage />
         </ProtectedRoute>
       } />
 
