@@ -275,11 +275,11 @@ export default function TaskDetailModal({
                   )}
                 </div>
               </div>
-             </div>
-           </div>
+            </div>
           </div>
         )}
       </div>
     </div>
-   );
- }
+  </div>
+  );
+}
