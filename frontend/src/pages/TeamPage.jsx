@@ -78,60 +78,69 @@ export default function TeamPage() {
   if (!team) return null;
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="relative min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-hero" />
+      <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern" />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Navbar */}
-      <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/dashboard" className="text-xl font-bold text-white tracking-tight hover:opacity-80 transition-opacity">
-            Team<span className="text-indigo-400">Sync</span>
+      <nav className="sticky top-0 z-40 border-b border-border bg-card-glass backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
+              <span className="font-display text-lg">T</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight">TeamSync</p>
+              <p className="text-xs text-muted-foreground">Team workspace</p>
+            </div>
           </Link>
           <Link
             to="/dashboard"
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to Dashboard
+            Back to dashboard
           </Link>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Team header */}
-        <div className="flex items-start justify-between mb-8">
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">{team.name}</h1>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary">Team</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+              <span className="font-display italic text-gradient">{team.name}</span>
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
               Created {new Date(team.created_at).toLocaleDateString()}
             </p>
           </div>
           {isAdmin && (
             <button
               onClick={handleDeleteTeam}
-              className="px-4 py-2 text-sm bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg border border-red-500/20 transition-colors cursor-pointer"
+              className="rounded-full border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive transition hover:bg-destructive/20"
             >
               Delete Team
             </button>
           )}
-        </div>
+        </header>
 
-        {/* Add member form (admin only) */}
         {isAdmin && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4">Add Member</h2>
-            <form onSubmit={handleAddMember} className="flex gap-3">
+          <div className="mt-8 rounded-2xl border border-border bg-card-glass p-6 shadow-card">
+            <h2 className="text-lg font-semibold">Add Member</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Invite someone by email and assign their role.</p>
+            <form onSubmit={handleAddMember} className="mt-5 flex flex-col gap-3 sm:flex-row">
               <input
                 type="email"
                 value={memberEmail}
                 onChange={(e) => setMemberEmail(e.target.value)}
                 placeholder="Enter member's email"
                 required
-                className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
               />
               <button
                 type="submit"
                 disabled={addingMember}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-lg transition-colors cursor-pointer shrink-0"
+                className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
               >
                 {addingMember ? 'Adding...' : 'Add'}
               </button>
@@ -139,47 +148,47 @@ export default function TeamPage() {
           </div>
         )}
 
-        {/* Members list */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Members ({team.members?.length || 0})
-          </h2>
+        <div className="mt-8 rounded-2xl border border-border bg-card-glass p-6 shadow-card">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Members</h2>
+            <span className="text-xs text-muted-foreground">{team.members?.length || 0} total</span>
+          </div>
 
           {!team.members?.length ? (
             <EmptyState icon="👥" title="No members yet" message="Add team members by their email address." />
           ) : (
-            <div className="space-y-3">
+            <div className="mt-5 space-y-3">
               {team.members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-800/50 border border-gray-700/50"
+                  className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 text-sm font-semibold">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/30 bg-primary/15 text-sm font-semibold text-primary">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">
+                      <p className="text-sm font-medium">
                         {member.name}
                         {member.id === user?.id && (
-                          <span className="text-gray-500 ml-1">(You)</span>
+                          <span className="text-muted-foreground ml-1">(You)</span>
                         )}
                       </p>
-                      <p className="text-xs text-gray-500">{member.email}</p>
+                      <p className="text-xs text-muted-foreground">{member.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
                       member.role === 'admin'
-                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                        : 'bg-gray-700/50 text-gray-400 border border-gray-600/30'
+                        ? 'bg-primary/15 text-primary border-primary/30'
+                        : 'bg-surface-elevated text-muted-foreground border-border'
                     }`}>
                       {member.role}
                     </span>
                     {isAdmin && member.id !== team.created_by && (
                       <button
                         onClick={() => handleRemoveMember(member.id, member.name)}
-                        className="text-xs text-red-400/70 hover:text-red-400 transition-colors cursor-pointer"
+                        className="text-xs text-destructive hover:text-destructive-foreground transition-colors"
                       >
                         Remove
                       </button>

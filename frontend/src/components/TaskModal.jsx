@@ -56,18 +56,16 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-md" onClick={onClose}></div>
 
-      {/* Modal */}
-      <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto rounded-3xl border border-border bg-card-glass p-6 shadow-card">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-semibold">
             {isEditing ? 'Edit Task' : 'Create Task'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white transition-colors text-xl cursor-pointer"
+            className="text-muted-foreground hover:text-foreground transition-colors text-xl"
           >
             ✕
           </button>
@@ -76,7 +74,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label htmlFor="task-title" className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label htmlFor="task-title" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
               Title *
             </label>
             <input
@@ -86,13 +84,13 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
               onChange={handleChange}
               required
               placeholder="What needs to be done?"
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="task-description" className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label htmlFor="task-description" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
               Description
             </label>
             <textarea
@@ -102,14 +100,14 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
               onChange={handleChange}
               rows={3}
               placeholder="Add details (optional)"
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition resize-none"
             />
           </div>
 
           {/* Team (only when creating) */}
           {!isEditing && (
             <div>
-              <label htmlFor="task-team" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="task-team" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 Team *
               </label>
               <select
@@ -118,7 +116,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 value={formData.team_id}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
               >
                 <option value="">Select a team</option>
                 {teams?.map((team) => (
@@ -131,7 +129,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
           {/* Status + Priority row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="task-status" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="task-status" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 Status
               </label>
               <select
@@ -139,7 +137,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
               >
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
@@ -147,7 +145,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
               </select>
             </div>
             <div>
-              <label htmlFor="task-priority" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="task-priority" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 Priority
               </label>
               <select
@@ -155,7 +153,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -166,7 +164,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
 
           {/* Due date */}
           <div>
-            <label htmlFor="task-due-date" className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label htmlFor="task-due-date" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
               Due Date
             </label>
             <input
@@ -175,7 +173,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
               name="due_date"
               value={formData.due_date}
               onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
             />
           </div>
 
@@ -183,7 +181,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors cursor-pointer mt-2"
+            className="w-full mt-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Saving...' : isEditing ? 'Update Task' : 'Create Task'}
           </button>

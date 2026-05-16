@@ -35,6 +35,9 @@ export default function DashboardPage() {
 
   const [toast, setToast] = useState(null);
 
+  const teamCount = teams?.length ?? 0;
+  const taskCount = tasks?.length ?? 0;
+
   if (!user) return <LoadingSpinner />;
 
   const handleCreateTeam = async (e) => {
@@ -92,10 +95,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="relative min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-hero" />
+      <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern" />
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Task Modal */}
       <TaskModal
         isOpen={showTaskModal}
         onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
@@ -105,160 +110,206 @@ export default function DashboardPage() {
         loading={savingTask}
       />
 
-      {/* Navbar */}
-      <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <h1 className="text-xl font-bold text-white tracking-tight">
-            Team<span className="text-indigo-400">Sync</span>
-          </h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400 hidden sm:inline">
-              Welcome, <span className="text-white font-medium">{user.name}</span>
-            </span>
-            <button
-              onClick={logout}
-              className="px-4 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg border border-gray-700 transition-colors cursor-pointer"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab switcher + action buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
-                activeTab === 'tasks'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Tasks
-            </button>
-            <button
-              onClick={() => setActiveTab('teams')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
-                activeTab === 'teams'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Teams
-            </button>
-          </div>
-
-          <div className="flex gap-3">
-            {activeTab === 'tasks' && (
-              <button
-                onClick={() => { setEditingTask(null); setShowTaskModal(true); }}
-                className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors cursor-pointer"
-              >
-                + New Task
-              </button>
-            )}
-            {activeTab === 'teams' && (
-              <button
-                onClick={() => setShowCreateTeam(!showCreateTeam)}
-                className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors cursor-pointer"
-              >
-                {showCreateTeam ? 'Cancel' : '+ New Team'}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ===== TASKS TAB ===== */}
-        {activeTab === 'tasks' && (
-          <>
-            {/* Filter bar */}
-            <div className="mb-6">
-              <FilterBar
-                teams={teams}
-                filters={filters}
-                onTeamChange={(id) => setFilters((f) => ({ ...f, teamId: id }))}
-                onStatusChange={(s) => setFilters((f) => ({ ...f, status: s }))}
-                onAssigneeChange={(id) => setFilters((f) => ({ ...f, assignedTo: id }))}
-              />
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          <aside className="hidden h-fit flex-col gap-6 rounded-3xl border border-border bg-card-glass p-6 shadow-card lg:flex">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
+                <span className="font-display text-lg">T</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold tracking-tight">TeamSync</p>
+                <p className="text-xs text-muted-foreground">Workspace</p>
+              </div>
             </div>
 
-            {/* Task grid */}
-            {tasksLoading ? (
-              <LoadingSpinner />
-            ) : tasks.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl">
-                <EmptyState
-                  icon="✅"
-                  title="No tasks found"
-                  message={filters.teamId || filters.status ? 'Try adjusting your filters.' : 'Create your first task to get started.'}
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onEdit={handleEditTask}
-                    onDelete={handleDeleteTask}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+            <div className="space-y-2 text-sm">
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition ${
+                  activeTab === 'tasks'
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span>Tasks</span>
+                <span className="text-xs">{taskCount}</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('teams')}
+                className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition ${
+                  activeTab === 'teams'
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span>Teams</span>
+                <span className="text-xs">{teamCount}</span>
+              </button>
+            </div>
 
-        {/* ===== TEAMS TAB ===== */}
-        {activeTab === 'teams' && (
-          <>
-            {/* Create team form */}
-            {showCreateTeam && (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <form onSubmit={handleCreateTeam} className="flex gap-3">
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    placeholder="Enter team name"
-                    required
-                    autoFocus
-                    className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
+            <div className="rounded-2xl border border-border bg-surface p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Today</p>
+              <p className="mt-3 text-sm text-foreground">Review priorities and ship the next milestone.</p>
+              <p className="mt-4 text-xs text-muted-foreground">Stay aligned with real-time updates.</p>
+            </div>
+          </aside>
+
+          <section className="flex flex-col gap-6">
+            <header className="rounded-3xl border border-border bg-card-glass p-6 shadow-card">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-primary">Workspace</p>
+                  <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    Welcome back,{' '}
+                    <span className="font-display italic text-gradient">{user.name}</span>
+                  </h1>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Focus on the work that moves your team forward today.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {activeTab === 'tasks' && (
+                    <button
+                      onClick={() => { setEditingTask(null); setShowTaskModal(true); }}
+                      className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:shadow-glow"
+                    >
+                      + New Task
+                    </button>
+                  )}
+                  {activeTab === 'teams' && (
+                    <button
+                      onClick={() => setShowCreateTeam(!showCreateTeam)}
+                      className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:shadow-glow"
+                    >
+                      {showCreateTeam ? 'Cancel' : '+ New Team'}
+                    </button>
+                  )}
                   <button
-                    type="submit"
-                    disabled={creatingTeam}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-lg transition-colors cursor-pointer shrink-0"
+                    onClick={logout}
+                    className="rounded-full border border-border bg-surface px-5 py-2 text-sm text-foreground transition hover:border-primary/50 hover:text-primary"
                   >
-                    {creatingTeam ? 'Creating...' : 'Create'}
+                    Logout
                   </button>
-                </form>
+                </div>
               </div>
+            </header>
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card-glass p-1">
+                <button
+                  onClick={() => setActiveTab('tasks')}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'tasks'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Tasks
+                </button>
+                <button
+                  onClick={() => setActiveTab('teams')}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'teams'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Teams
+                </button>
+              </div>
+
+              {activeTab === 'tasks' && (
+                <div className="rounded-full border border-border bg-card-glass px-4 py-2 text-xs text-muted-foreground">
+                  Keep tasks aligned with realtime context.
+                </div>
+              )}
+            </div>
+
+            {activeTab === 'tasks' && (
+              <>
+                <div>
+                  <FilterBar
+                    teams={teams}
+                    filters={filters}
+                    onTeamChange={(id) => setFilters((f) => ({ ...f, teamId: id }))}
+                    onStatusChange={(s) => setFilters((f) => ({ ...f, status: s }))}
+                    onAssigneeChange={(id) => setFilters((f) => ({ ...f, assignedTo: id }))}
+                  />
+                </div>
+
+                {tasksLoading ? (
+                  <LoadingSpinner />
+                ) : tasks.length === 0 ? (
+                  <div className="rounded-2xl border border-border bg-card-glass">
+                    <EmptyState
+                      icon="✅"
+                      title="No tasks found"
+                      message={filters.teamId || filters.status ? 'Try adjusting your filters.' : 'Create your first task to get started.'}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {tasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={handleEditTask}
+                        onDelete={handleDeleteTask}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
-            {/* Teams grid */}
-            {teamsLoading ? (
-              <LoadingSpinner />
-            ) : teams.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl">
-                <EmptyState
-                  icon="🏢"
-                  title="No teams yet"
-                  message="Create your first team to start collaborating."
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {teams.map((team) => (
-                  <TeamCard key={team.id} team={team} />
-                ))}
-              </div>
+            {activeTab === 'teams' && (
+              <>
+                {showCreateTeam && (
+                  <div className="rounded-2xl border border-border bg-card-glass p-6 shadow-card">
+                    <form onSubmit={handleCreateTeam} className="flex flex-col gap-3 sm:flex-row">
+                      <input
+                        type="text"
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        placeholder="Enter team name"
+                        required
+                        autoFocus
+                        className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
+                      />
+                      <button
+                        type="submit"
+                        disabled={creatingTeam}
+                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
+                      >
+                        {creatingTeam ? 'Creating...' : 'Create'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {teamsLoading ? (
+                  <LoadingSpinner />
+                ) : teams.length === 0 ? (
+                  <div className="rounded-2xl border border-border bg-card-glass">
+                    <EmptyState
+                      icon="🏢"
+                      title="No teams yet"
+                      message="Create your first team to start collaborating."
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {teams.map((team) => (
+                      <TeamCard key={team.id} team={team} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </main>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

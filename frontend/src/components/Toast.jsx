@@ -12,18 +12,18 @@ export default function Toast({ message, type = 'success', onClose }) {
   }, 3000);
 
   const bgColor = type === 'error'
-    ? 'bg-red-500/90'
+    ? 'bg-destructive/80 text-destructive-foreground'
     : type === 'warning'
-      ? 'bg-yellow-500/90'
-      : 'bg-emerald-500/90';
+      ? 'bg-violet/70 text-foreground'
+      : 'bg-primary/80 text-primary-foreground';
 
   return (
-    <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-2xl backdrop-blur-sm ${bgColor} animate-[slideIn_0.3s_ease-out]`}>
+    <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-medium shadow-card backdrop-blur-sm border border-border ${bgColor} animate-[slideIn_0.3s_ease-out]`}>
       <div className="flex items-center gap-3">
         <span>{message}</span>
         <button
           onClick={() => { setVisible(false); if (onClose) onClose(); }}
-          className="text-white/70 hover:text-white transition-colors cursor-pointer"
+          className="text-foreground/70 hover:text-foreground transition-colors cursor-pointer"
         >
           ✕
         </button>
