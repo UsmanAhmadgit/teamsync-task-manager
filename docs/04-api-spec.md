@@ -100,7 +100,7 @@
   "priority": "high",
   "due_date": "2025-12-31",
   "team_id": 1,
-  "assigned_to": 2
+  "assigned_to": [2, 3]
 }
 ```
 - **201:** Returns created task object
@@ -112,8 +112,36 @@
 - **Query params:** `?teamId=1&assignedTo=2&status=todo` (all optional)
 - **200:** Returns tasks in teams the user belongs to, filtered dynamically
 ```json
-{ "success": true, "data": [{ "id": 1, "title": "Fix login bug", "status": "todo", "priority": "high", "assigned_to_name": "Ali Khan", ... }] }
+{ "success": true, "data": [{ "id": 1, "title": "Fix login bug", "status": "todo", "priority": "high", "assignees": [{"id":2,"name":"Ali Khan"}], "subtask_total": 3, "subtask_completed": 1, ... }] }
 ```
+
+### GET /tasks/:id
+- **Auth:** Yes (must be team member)
+- **200:** Returns task details with assignees, subtasks, comments, attachments, activity
+
+### POST /tasks/:id/subtasks
+- **Auth:** Yes (must be team member)
+- **Body:** `{ "title": "Setup PassportJS", "sort_order": 1 }`
+- **201:** Returns created subtask
+
+### PUT /tasks/:id/subtasks/:subtaskId
+- **Auth:** Yes (must be team member)
+- **Body:** `{ "title": "...", "is_done": true, "sort_order": 2 }`
+- **200:** Returns updated subtask
+
+### DELETE /tasks/:id/subtasks/:subtaskId
+- **Auth:** Yes (must be team member)
+- **200:** `{ "success": true, "message": "Subtask deleted" }`
+
+### POST /tasks/:id/comments
+- **Auth:** Yes (must be team member)
+- **Body:** `{ "body": "This is blocked on API keys", "attachment_ids": [5, 6] }`
+- **201:** Returns created comment
+
+### POST /tasks/:id/attachments
+- **Auth:** Yes (must be team member)
+- **Body:** Multipart form with `file`
+- **201:** Returns attachment metadata with file_path
 
 ### PUT /tasks/:id
 - **Auth:** Yes (must be team member)

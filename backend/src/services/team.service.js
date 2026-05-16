@@ -36,9 +36,6 @@ async function getTeamDetails({ teamId, userId }) {
 async function removeTeam({ teamId, userId }) {
   const team = await findTeamById(teamId);
   if (!team) throw createError(404, 'Team not found');
-  if (team.created_by !== userId) {
-    throw createError(403, 'Only the team creator can delete this team');
-  }
   await deleteTeam(teamId);
 }
 

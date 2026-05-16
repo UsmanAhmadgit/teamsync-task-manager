@@ -18,29 +18,45 @@ const statusLabels = {
   done: 'Done',
 };
 
-export default function TaskCard({ task, onEdit, onDelete }) {
+export default function TaskCard({ task, onEdit, onDelete, onOpen, canDelete, canEdit, statusOnly }) {
   const overdue = isOverdue(task.due_date, task.status);
+  const assignees = task.assignees || [];
+  const totalSubtasks = Number(task.subtask_total || 0);
+  const completedSubtasks = Number(task.subtask_completed || 0);
+  const progress = totalSubtasks ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
 
   return (
-    <div className="rounded-2xl border border-border bg-card-glass p-5 shadow-card transition-all duration-200 group hover:border-primary/40">
+    <div
+      className="rounded-2xl border border-border bg-card-glass p-5 shadow-card transition-all duration-200 group hover:border-primary/40 cursor-pointer"
+      onClick={() => onOpen?.(task)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') onOpen?.(task);
+      }}
+    >
       {/* Header row */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <h3 className="text-base font-semibold text-foreground leading-snug truncate">
           {task.title}
         </h3>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={() => onEdit(task)}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(task.id)}
-            className="text-xs text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-          >
-            Delete
-          </button>
+        <div className="flex items-center gap-1.5 shrink-0" onClick={(event) => event.stopPropagation()}>
+          {(canEdit || statusOnly) && (
+            <button
+              onClick={() => onEdit(task, statusOnly ? 'status-only' : 'full')}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+            >
+              {statusOnly ? 'Update Status' : 'Edit'}
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(task.id)}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+            >
+              Delete
+            </button>
+          )}
         </div>
       </div>
 
@@ -64,10 +80,28 @@ export default function TaskCard({ task, onEdit, onDelete }) {
         )}
       </div>
 
+      {totalSubtasks > 0 && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Progress</span>
+            <span>{completedSubtasks}/{totalSubtasks}</span>
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-elevated">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-glow"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          {task.assigned_to_name ? `→ ${task.assigned_to_name}` : 'Unassigned'}
+          {assignees.length
+            ? assignees.slice(0, 2).map((member) => member.name).join(', ')
+            : 'Unassigned'}
+          {assignees.length > 2 ? ` +${assignees.length - 2}` : ''}
         </span>
         {task.due_date && (
           <span className={overdue ? 'text-destructive' : ''}>

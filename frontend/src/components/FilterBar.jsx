@@ -1,4 +1,15 @@
-export default function FilterBar({ teams, onTeamChange, onStatusChange, onAssigneeChange, filters }) {
+export default function FilterBar({
+  teams,
+  onTeamChange,
+  onStatusChange,
+  onOwnershipChange,
+  ownership,
+  assignees = [],
+  assigneeFilter,
+  onAssigneeFilterChange,
+  isTeamAdmin,
+  filters,
+}) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Team filter */}
@@ -13,6 +24,17 @@ export default function FilterBar({ teams, onTeamChange, onStatusChange, onAssig
         ))}
       </select>
 
+      {/* Ownership filter */}
+      <select
+        value={ownership}
+        onChange={(e) => onOwnershipChange?.(e.target.value)}
+        className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+      >
+        <option value="all">All Tasks</option>
+        <option value="assigned">Assigned to Me</option>
+        <option value="created">Created by Me</option>
+      </select>
+
       {/* Status filter */}
       <select
         value={filters.status || ''}
@@ -25,13 +47,27 @@ export default function FilterBar({ teams, onTeamChange, onStatusChange, onAssig
         <option value="done">Done</option>
       </select>
 
+      {isTeamAdmin && filters.teamId && (
+        <select
+          value={assigneeFilter || ''}
+          onChange={(e) => onAssigneeFilterChange?.(e.target.value)}
+          className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+        >
+          <option value="">All Assignees</option>
+          {assignees.map((member) => (
+            <option key={member.id} value={member.id}>{member.name}</option>
+          ))}
+        </select>
+      )}
+
       {/* Clear filters */}
-      {(filters.teamId || filters.status || filters.assignedTo) && (
+      {(filters.teamId || filters.status || filters.assignedTo || filters.createdBy || assigneeFilter) && (
         <button
           onClick={() => {
             onTeamChange('');
             onStatusChange('');
-            if (onAssigneeChange) onAssigneeChange('');
+            onOwnershipChange?.('all');
+            onAssigneeFilterChange?.('');
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
