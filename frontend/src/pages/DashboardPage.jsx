@@ -84,6 +84,12 @@ export default function DashboardPage() {
     setFilters((prev) => ({ ...prev, assignedTo: value, createdBy: '' }));
   };
 
+  const handleClearFilters = () => {
+    setFilters({ teamId: '', assignedTo: '', createdBy: '', status: '' });
+    setOwnership('all');
+    setAssigneeFilter('');
+  };
+
   useEffect(() => {
     if (!filters.teamId || !isTeamAdmin) {
       setTeamMembers([]);
@@ -336,6 +342,7 @@ export default function DashboardPage() {
                     assigneeFilter={assigneeFilter}
                     onAssigneeFilterChange={handleAssigneeFilterChange}
                     isTeamAdmin={isTeamAdmin}
+                    onClearFilters={handleClearFilters}
                   />
                 </div>
 

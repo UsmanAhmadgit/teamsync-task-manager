@@ -9,6 +9,7 @@ export default function FilterBar({
   onAssigneeFilterChange,
   isTeamAdmin,
   filters,
+  onClearFilters,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -63,12 +64,12 @@ export default function FilterBar({
       {/* Clear filters */}
       {(filters.teamId || filters.status || filters.assignedTo || filters.createdBy || assigneeFilter || ownership !== 'all') && (
         <button
-          onClick={() => {
+          onClick={onClearFilters || (() => {
             onTeamChange('');
             onStatusChange('');
             onOwnershipChange?.('all');
             onAssigneeFilterChange?.('');
-          }}
+          })}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           Clear filters
