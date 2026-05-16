@@ -46,4 +46,11 @@ function getMe(req, res) {
   });
 }
 
-module.exports = { register, login, logout, getMe };
+// PUT /auth/profile
+async function updateProfile(req, res) {
+  const { name, email, password } = req.body;
+  const updatedUser = await authService.updateProfile(req.user.id, { name, email, password });
+  res.status(200).json({ success: true, data: updatedUser });
+}
+
+module.exports = { register, login, logout, getMe, updateProfile };

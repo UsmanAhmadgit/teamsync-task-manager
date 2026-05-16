@@ -251,7 +251,7 @@ export default function TaskDetailModal({
             <div className="space-y-6 pt-8 lg:pt-12">
               <div className="rounded-2xl border border-border bg-surface p-5">
                 <h3 className="text-sm font-semibold">Assignees</h3>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                   {task.assignees?.length ? task.assignees.map((member) => (
                     <div key={member.id} className="flex items-center justify-between rounded-xl border border-border bg-card-glass px-3 py-2">
                       <span className="text-sm">{member.name}</span>
@@ -265,7 +265,7 @@ export default function TaskDetailModal({
 
               <div className="rounded-2xl border border-border bg-surface p-5">
                 <h3 className="text-sm font-semibold">Activity</h3>
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                   {task.activity?.length ? task.activity.map((item) => (
                     <div key={item.id} className="text-xs text-muted-foreground">
                       <span className="text-foreground">{item.actor_name || 'Someone'}</span> {item.action.replace(/_/g, ' ')} · {new Date(item.created_at).toLocaleString()}

@@ -1,3 +1,5 @@
+import CustomSelect from './CustomSelect';
+
 export default function FilterBar({
   teams,
   onTeamChange,
@@ -14,51 +16,51 @@ export default function FilterBar({
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Team filter */}
-      <select
+      <CustomSelect
         value={filters.teamId || ''}
-        onChange={(e) => onTeamChange(e.target.value)}
-        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-      >
-        <option value="">All Teams</option>
-        {teams.map((team) => (
-          <option key={team.id} value={team.id}>{team.name}</option>
-        ))}
-      </select>
+        onChange={(val) => onTeamChange(val)}
+        options={[
+          { label: 'All Teams', value: '' },
+          ...teams.map((team) => ({ label: team.name, value: team.id }))
+        ]}
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-white/5"
+      />
 
       {/* Ownership filter */}
-      <select
+      <CustomSelect
         value={ownership}
-        onChange={(e) => onOwnershipChange?.(e.target.value)}
-        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-      >
-        <option value="all">All Tasks</option>
-        <option value="assigned">Assigned to Me</option>
-        <option value="created">Created by Me</option>
-      </select>
+        onChange={(val) => onOwnershipChange?.(val)}
+        options={[
+          { label: 'All Tasks', value: 'all' },
+          { label: 'Assigned to Me', value: 'assigned' },
+          { label: 'Created by Me', value: 'created' }
+        ]}
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-white/5"
+      />
 
       {/* Status filter */}
-      <select
+      <CustomSelect
         value={filters.status || ''}
-        onChange={(e) => onStatusChange(e.target.value)}
-        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-      >
-        <option value="">All Statuses</option>
-        <option value="todo">To Do</option>
-        <option value="in_progress">In Progress</option>
-        <option value="done">Done</option>
-      </select>
+        onChange={(val) => onStatusChange(val)}
+        options={[
+          { label: 'All Statuses', value: '' },
+          { label: 'To Do', value: 'todo' },
+          { label: 'In Progress', value: 'in_progress' },
+          { label: 'Done', value: 'done' }
+        ]}
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-white/5"
+      />
 
       {isTeamAdmin && filters.teamId && (
-        <select
+        <CustomSelect
           value={assigneeFilter || ''}
-          onChange={(e) => onAssigneeFilterChange?.(e.target.value)}
-          className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-        >
-          <option value="">All Assignees</option>
-          {assignees.map((member) => (
-            <option key={member.id} value={member.id}>{member.name}</option>
-          ))}
-        </select>
+          onChange={(val) => onAssigneeFilterChange?.(val)}
+          options={[
+            { label: 'All Assignees', value: '' },
+            ...assignees.map((member) => ({ label: member.name, value: member.id }))
+          ]}
+          className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 hover:bg-white/5"
+        />
       )}
 
       {/* Clear filters */}

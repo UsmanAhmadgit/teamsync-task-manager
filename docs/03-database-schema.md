@@ -136,6 +136,18 @@ users (1) ──────── (many) tasks           [created_by]
 | metadata | JSONB | DEFAULT '{}' |
 | created_at | TIMESTAMP | DEFAULT NOW() |
 
+### notifications
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| user_id | INTEGER | FK → users(id), ON DELETE CASCADE |
+| type | VARCHAR(50) | NOT NULL |
+| title | VARCHAR(255) | NOT NULL |
+| message | TEXT | nullable |
+| related_id | INTEGER | nullable (task_id or team_id) |
+| is_read | BOOLEAN | DEFAULT false |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
 ---
 
 ## Indexes
@@ -147,3 +159,4 @@ users (1) ──────── (many) tasks           [created_by]
 | tasks | idx_tasks_team_id | team_id |
 | tasks | idx_tasks_assigned_to | assigned_to |
 | tasks | idx_tasks_status | status |
+| notifications | idx_notifications_user_id | user_id |

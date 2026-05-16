@@ -8,12 +8,14 @@ export default function Sidebar({
   onSelectMyDashboard,
   onSelectNotifications,
   onSelectTeam,
+  onSelectAccountSettings,
+  hasUnreadNotifications,
   user,
   onLogout,
 }) {
   return (
-    <aside className="hidden h-[calc(100vh-4rem)] flex-col gap-6 rounded-3xl border border-border bg-card-glass p-6 shadow-card lg:flex">
-      <Link to="/" className="flex items-center gap-3">
+    <aside className="hidden h-fit flex-col gap-6 rounded-3xl border border-border bg-card-glass p-6 shadow-card lg:flex">
+      <Link to="/dashboard" reloadDocument className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
           <Sparkles className="h-4 w-4" strokeWidth={2.5} />
         </div>
@@ -36,20 +38,24 @@ export default function Sidebar({
         </button>
         <button
           onClick={onSelectNotifications}
-          className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition ${
+          className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition cursor-pointer ${
             activeSection === 'notifications'
               ? 'border-primary/40 bg-primary/10 text-primary'
               : 'border-border text-muted-foreground hover:text-foreground'
           }`}
         >
-          <span>Notifications</span>
-          <span className="text-xs text-muted-foreground">Soon</span>
+          <div className="flex items-center gap-2">
+            <span>Notifications</span>
+            {hasUnreadNotifications && (
+              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
+            )}
+          </div>
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex flex-col">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground shrink-0">Teams</p>
-        <div className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+        <div className="mt-3 max-h-[260px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
           {teams.map((team) => (
             <button
               key={team.id}
@@ -77,7 +83,8 @@ export default function Sidebar({
         <div className="mt-4 flex gap-2">
           <button
             type="button"
-            className="flex-1 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+            onClick={onSelectAccountSettings}
+            className="flex-1 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground cursor-pointer"
           >
             Settings
           </button>

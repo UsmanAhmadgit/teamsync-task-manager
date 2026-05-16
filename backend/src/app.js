@@ -13,6 +13,7 @@ const path = require('path');
 const authRoutes = require('./routes/auth.routes');
 const teamRoutes = require('./routes/team.routes');
 const taskRoutes = require('./routes/task.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/teams', teamRoutes);
 app.use('/tasks', taskRoutes);
+app.use('/notifications', notificationRoutes);
 
 // 6.5 Uploads
 app.use('/uploads', express.static(path.resolve(uploadDir)));

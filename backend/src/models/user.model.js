@@ -24,4 +24,20 @@ async function createUser({ name, email, passwordHash }) {
   return result.rows[0];
 }
 
-module.exports = { findUserByEmail, findUserById, createUser };
+async function updateUser(id, { name, email, passwordHash }) {
+  if (passwordHash) {
+    const result = await pool.query(
+      'UPDATE users SET name = $1, email = $2, password_hash = $3 WHERE id = $4 RETURNING id, name, email, created_at',
+      [name, email, passwordHash, id]
+    );
+    return result.rows[0];
+  } else {
+    const result = await pool.query(
+      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, created_at',
+      [name, email, id]
+    );
+    return result.rows[0];
+  }
+}
+
+module.exports = { findUserByEmail, findUserById, createUser, updateUser };

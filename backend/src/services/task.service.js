@@ -19,6 +19,7 @@ const {
   attachFilesToComment,
   createActivity,
 } = require('../models/task.model');
+const { createNotification } = require('../models/notification.model');
 
 function normalizeAssignees(input) {
   if (input === undefined) return null;
@@ -57,6 +58,20 @@ async function createNewTask({ title, description, status, priority, dueDate, te
   });
 
   await setTaskAssignees({ taskId: task.id, assigneeIds, assignedBy: createdBy });
+  
+  // Notify assignees
+  for (const assigneeId of assigneeIds) {
+    if (assigneeId !== createdBy) {
+      await createNotification({
+        userId: assigneeId,
+        type: 'assignment',
+        title: `New Task Assigned: ${title}`,
+        message: `You have been assigned to the task: ${title}`,
+        relatedId: task.id
+      });
+    }
+  }
+
   await createActivity({
     taskId: task.id,
     actorId: createdBy,
@@ -128,6 +143,21 @@ async function editTask({ taskId, updates, userId }) {
   if (assigneeInput !== null) {
     const previousAssignees = await findAssigneeIds(taskId);
     await setTaskAssignees({ taskId, assigneeIds: assigneeInput, assignedBy: userId });
+    
+    // Notify new assignees
+    const newAssignees = assigneeInput.filter(id => !previousAssignees.includes(id));
+    for (const assigneeId of newAssignees) {
+      if (assigneeId !== userId) {
+        await createNotification({
+          userId: assigneeId,
+          type: 'assignment',
+          title: `New Task Assigned: ${task.title}`,
+          message: `You have been assigned to the task: ${task.title}`,
+          relatedId: task.id
+        });
+      }
+    }
+
     await createActivity({
       taskId,
       actorId: userId,
@@ -243,6 +273,22 @@ async function addComment({ taskId, body, attachmentIds, userId }) {
     action: 'comment_added',
     metadata: { commentId: comment.id },
   });
+
+  // Notify task creator and other assignees
+  const assignees = await findAssigneeIds(taskId);
+  const usersToNotify = new Set([...assignees, task.created_by]);
+  usersToNotify.delete(userId); // Don't notify self
+  
+  for (const uid of usersToNotify) {
+    await createNotification({
+      userId: uid,
+      type: 'mention',
+      title: `New Comment on: ${task.title}`,
+      message: `Someone commented on a task you are involved in.`,
+      relatedId: taskId
+    });
+  }
+
   return comment;
 }
 

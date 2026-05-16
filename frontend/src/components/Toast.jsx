@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Toast({ message, type = 'success', onClose }) {
   const [visible, setVisible] = useState(true);
 
-  if (!visible || !message) return null;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+      if (onClose) onClose();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
 
-  // Auto-dismiss after 3 seconds
-  setTimeout(() => {
-    setVisible(false);
-    if (onClose) onClose();
-  }, 3000);
+  if (!visible || !message) return null;
 
   const bgColor = type === 'error'
     ? 'bg-destructive/80 text-destructive-foreground'

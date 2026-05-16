@@ -5,6 +5,7 @@ import { useTeams } from '../hooks/useTeams';
 import { useTasks } from '../hooks/useTasks';
 import { teamService } from '../services/teamService';
 import { taskService } from '../services/taskService';
+import { notificationService } from '../services/notificationService';
 import Sidebar from '../components/Sidebar';
 import TaskCard from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
@@ -14,6 +15,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
+import AccountSettingsModal from '../components/AccountSettingsModal';
 import { LayoutList, Users } from 'lucide-react';
 
 export default function TeamPage() {
@@ -34,14 +36,26 @@ export default function TeamPage() {
   const [editMode, setEditMode] = useState('full');
   const [savingTask, setSavingTask] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false });
+  const [notifications, setNotifications] = useState([]);
 
   const isAdmin = team?.members?.some((m) => m.id === user?.id && m.role === 'admin');
 
   useEffect(() => {
     fetchTeam();
+    fetchNotifications();
   }, [id]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getAll();
+      setNotifications(res.data.data);
+    } catch (err) {
+      console.error('Failed to load notifications', err);
+    }
+  };
 
   const fetchTeam = () => {
     setLoading(true);
@@ -100,7 +114,9 @@ export default function TeamPage() {
       } else if (confirmDelete.type === 'team') {
         await teamService.delete(id);
         setToast({ message: 'Team deleted', type: 'success' });
-        setTimeout(() => navigate('/dashboard'), 1000);
+        setTimeout(() => {
+          navigate('/dashboard', { state: { section: 'my', tab: 'teams' } });
+        }, 1000);
       }
     } catch (err) {
       setToast({ message: err.response?.data?.message || 'Operation failed', type: 'error' });
@@ -196,15 +212,24 @@ export default function TeamPage() {
         taskId={selectedTaskId}
         isOpen={showTaskDetail}
         onClose={() => setShowTaskDetail(false)}
-        onEdit={(taskItem) => {
+        onEdit={(taskItem, mode) => {
           setShowTaskDetail(false);
           setEditingTask(taskItem);
-          setEditMode('full');
+          setEditMode(mode);
           setShowTaskModal(true);
         }}
         onTaskUpdated={() => refetchTasks()}
         currentUser={user}
         teamRole={isAdmin ? 'admin' : 'member'}
+      />
+
+      <AccountSettingsModal
+        isOpen={showAccountSettings}
+        onClose={() => setShowAccountSettings(false)}
+        user={user}
+        onUpdate={(updatedUser) => {
+          // Handle update if needed
+        }}
       />
 
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -213,8 +238,10 @@ export default function TeamPage() {
             teams={teams}
             activeSection="team"
             activeTeamId={parseInt(id, 10)}
+            hasUnreadNotifications={notifications.some(n => !n.is_read)}
             onSelectMyDashboard={() => navigate('/dashboard')}
-            onSelectNotifications={() => navigate('/dashboard')}
+            onSelectNotifications={() => navigate('/dashboard', { state: { section: 'notifications' } })}
+            onSelectAccountSettings={() => setShowAccountSettings(true)}
             onSelectTeam={(teamItem) => navigate(`/teams/${teamItem.id}`)}
             user={user}
             onLogout={logout}
@@ -254,7 +281,7 @@ export default function TeamPage() {
             </header>
 
             <div className="flex flex-wrap items-center gap-2 rounded-full border border-border bg-card-glass p-1">
-              {['board', 'list', 'members', 'settings'].map((tab) => (
+              {['board', 'list', 'members'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -391,13 +418,6 @@ export default function TeamPage() {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {activeTab === 'settings' && (
-              <div className="rounded-2xl border border-border bg-card-glass p-6 shadow-card">
-                <h2 className="text-lg font-semibold">Team Settings</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Additional team settings and integrations will appear here.</p>
               </div>
             )}
           </section>

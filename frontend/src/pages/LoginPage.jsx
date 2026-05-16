@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Layout, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -10,14 +10,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setToast(null);
 
     try {
       const res = await authService.login({ email, password });
@@ -25,7 +31,7 @@ export default function LoginPage() {
       navigate('/dashboard', { replace: true });
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed. Please try again.';
-      setToast({ message, type: 'error' });
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -35,7 +41,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-hero" />
       <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern" />
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
 
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-16">
         <div className="grid w-full items-center gap-10 lg:grid-cols-2">
@@ -83,6 +89,11 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                {error && (
+                  <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg text-center animate-fade-up">
+                    {error}
+                  </div>
+                )}
                 <div>
                   <label htmlFor="login-email" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                     Email

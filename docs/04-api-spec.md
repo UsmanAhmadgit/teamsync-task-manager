@@ -155,3 +155,34 @@
 - **200:** `{ "success": true, "message": "Task deleted" }`
 - **403:** Not creator or admin
 - **404:** Task not found
+
+---
+
+## NOTIFICATION ENDPOINTS
+
+### GET /notifications
+- **Auth:** Yes (Logged in user)
+- **200:** Returns array of notifications for the user.
+- **Response Data:**
+  ```json
+  [
+    {
+      "id": 1,
+      "user_id": 1,
+      "type": "deadline",
+      "title": "Task Overdue Reminder",
+      "message": "Task 'Fix auth bug' is due in less than 24 hours!",
+      "related_id": 5,
+      "is_read": false,
+      "created_at": "2026-05-16T12:00:00Z"
+    }
+  ]
+  ```
+
+### PATCH /notifications/:id/read
+- **Auth:** Yes (Logged in user)
+- **200:** Marks the specific notification as read.
+
+### POST /notifications/read-all
+- **Auth:** Yes (Logged in user)
+- **200:** Marks all notifications for the user as read.
