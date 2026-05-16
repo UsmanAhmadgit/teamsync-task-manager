@@ -16,7 +16,7 @@ export default function FilterBar({
       <select
         value={filters.teamId || ''}
         onChange={(e) => onTeamChange(e.target.value)}
-        className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
       >
         <option value="">All Teams</option>
         {teams.map((team) => (
@@ -28,7 +28,7 @@ export default function FilterBar({
       <select
         value={ownership}
         onChange={(e) => onOwnershipChange?.(e.target.value)}
-        className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
       >
         <option value="all">All Tasks</option>
         <option value="assigned">Assigned to Me</option>
@@ -39,7 +39,7 @@ export default function FilterBar({
       <select
         value={filters.status || ''}
         onChange={(e) => onStatusChange(e.target.value)}
-        className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+        className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
       >
         <option value="">All Statuses</option>
         <option value="todo">To Do</option>
@@ -51,7 +51,7 @@ export default function FilterBar({
         <select
           value={assigneeFilter || ''}
           onChange={(e) => onAssigneeFilterChange?.(e.target.value)}
-          className="rounded-full border border-border bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+          className="rounded-full border border-transparent bg-card-glass px-4 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
         >
           <option value="">All Assignees</option>
           {assignees.map((member) => (
@@ -61,7 +61,7 @@ export default function FilterBar({
       )}
 
       {/* Clear filters */}
-      {(filters.teamId || filters.status || filters.assignedTo || filters.createdBy || assigneeFilter) && (
+      {(filters.teamId || filters.status || filters.assignedTo || filters.createdBy || assigneeFilter || ownership !== 'all') && (
         <button
           onClick={() => {
             onTeamChange('');

@@ -46,8 +46,7 @@ export default function TaskDetailModal({
 
   const roleForTask = teamRoles && task ? teamRoles[task.team_id] : teamRole;
   const canEdit = currentUser && task && (roleForTask === 'admin' || task.created_by === currentUser.id);
-  const isAssignee = task?.assignees?.some(m => m.id === currentUser?.id);
-  const canStatusOnly = !canEdit && isAssignee && task?.assigned_by_admin;
+  const canStatusOnly = !canEdit;
 
   const handleAddSubtask = async () => {
     if (!newSubtask.trim()) return;
@@ -95,8 +94,15 @@ export default function TaskDetailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-background/70 backdrop-blur-md" onClick={onClose}></div>
 
-      <div className="relative mx-4 max-h-[90vh] w-full max-w-5xl overflow-y-auto custom-scrollbar rounded-3xl border border-border bg-card-glass p-6 shadow-card">
-        {loading || !task ? (
+      <div className="relative mx-4 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-border bg-card-glass shadow-card">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted-foreground transition hover:bg-surface hover:text-foreground"
+        >
+          ✕
+        </button>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+          {loading || !task ? (
           <div className="text-sm text-muted-foreground">Loading task...</div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -242,7 +248,7 @@ export default function TaskDetailModal({
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 pt-8 lg:pt-12">
               <div className="rounded-2xl border border-border bg-surface p-5">
                 <h3 className="text-sm font-semibold">Assignees</h3>
                 <div className="mt-4 space-y-2">
@@ -271,15 +277,9 @@ export default function TaskDetailModal({
               </div>
              </div>
            </div>
-         )}
-
-         <button
-           onClick={onClose}
-           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated text-muted-foreground hover:text-foreground transition hover:bg-surface border border-border"
-         >
-           ✕
-         </button>
-       </div>
-     </div>
+          </div>
+        )}
+      </div>
+    </div>
    );
  }

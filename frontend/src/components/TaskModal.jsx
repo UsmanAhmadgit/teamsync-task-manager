@@ -102,17 +102,18 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-background/70 backdrop-blur-md" onClick={onClose}></div>
 
-      <div className="relative w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto custom-scrollbar rounded-3xl border border-border bg-card-glass p-6 shadow-card">
+      <div className="relative mx-4 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card-glass shadow-card">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted-foreground transition hover:bg-surface hover:text-foreground text-xl"
+        >
+          ✕
+        </button>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">
             {isEditing ? 'Edit Task' : 'Create Task'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors text-xl"
-          >
-            ✕
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,7 +168,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 value={formData.team_id}
                 onChange={handleChange}
                 required
-                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-transparent bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
               >
                 <option value="">Select a team</option>
                 {teams?.map((team) => (
@@ -222,7 +223,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-transparent bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
               >
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
@@ -239,7 +240,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
                 value={formData.priority}
                 onChange={handleChange}
                 disabled={isStatusOnly}
-                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
+                className="mt-2 w-full rounded-xl border border-transparent bg-surface px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -274,6 +275,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
             {loading ? 'Saving...' : isEditing ? 'Update Task' : 'Create Task'}
           </button>
         </form>
+        </div>
       </div>
     </div>
   );
