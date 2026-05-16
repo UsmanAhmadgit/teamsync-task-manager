@@ -292,32 +292,7 @@ async function addComment({ taskId, body, attachmentIds, userId }) {
   return comment;
 }
 
-async function addAttachment({ taskId, file, userId }) {
-  const task = await findTaskById(taskId);
-  if (!task) throw createError(404, 'Task not found');
 
-  const membership = await findMembership({ teamId: task.team_id, userId });
-  if (!membership) throw createError(403, 'You do not have access to this task');
-
-  const attachment = await createAttachment({
-    taskId,
-    commentId: null,
-    uploaderId: userId,
-    fileName: file.originalname,
-    filePath: `/uploads/${file.filename}`,
-    mimeType: file.mimetype,
-    fileSize: file.size,
-  });
-
-  await createActivity({
-    taskId,
-    actorId: userId,
-    action: 'attachment_added',
-    metadata: { attachmentId: attachment.id, fileName: file.originalname },
-  });
-
-  return attachment;
-}
 
 module.exports = {
   createNewTask,
@@ -329,5 +304,4 @@ module.exports = {
   editSubtask,
   removeSubtask,
   addComment,
-  addAttachment,
 };

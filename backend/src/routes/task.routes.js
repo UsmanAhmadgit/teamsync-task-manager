@@ -11,7 +11,6 @@ const {
 const { validate } = require('../validators/auth.validator');
 const { isAuthenticated } = require('../middleware/auth.middleware');
 const asyncHandler = require('../utils/asyncHandler');
-const { upload } = require('../config/upload.config');
 
 // All task routes require authentication
 router.use(isAuthenticated);
@@ -29,8 +28,5 @@ router.delete('/:id/subtasks/:subtaskId', asyncHandler(taskController.removeSubt
 
 // Comments
 router.post('/:id/comments', createCommentValidator, validate, asyncHandler(taskController.addComment));
-
-// Attachments
-router.post('/:id/attachments', upload.single('file'), asyncHandler(taskController.addAttachment));
 
 module.exports = router;

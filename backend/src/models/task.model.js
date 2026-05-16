@@ -119,13 +119,6 @@ async function findTaskDetail(taskId) {
     [taskId]
   );
 
-  const attachmentsResult = await pool.query(
-    `SELECT id, task_id, comment_id, uploader_id, file_name, file_path, mime_type, file_size, created_at
-     FROM task_attachments
-     WHERE task_id = $1
-     ORDER BY created_at ASC`,
-    [taskId]
-  );
 
   const activityResult = await pool.query(
     `SELECT a.id, a.action, a.metadata, a.created_at, a.actor_id, u.name AS actor_name
@@ -141,7 +134,6 @@ async function findTaskDetail(taskId) {
     assignees: assigneesResult.rows,
     subtasks: subtasksResult.rows,
     comments: commentsResult.rows,
-    attachments: attachmentsResult.rows,
     activity: activityResult.rows,
   };
 }
@@ -267,24 +259,7 @@ async function createComment({ taskId, authorId, body }) {
   return result.rows[0];
 }
 
-async function createAttachment({ taskId, commentId, uploaderId, fileName, filePath, mimeType, fileSize }) {
-  const result = await pool.query(
-    `INSERT INTO task_attachments (task_id, comment_id, uploader_id, file_name, file_path, mime_type, file_size)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
-    [taskId, commentId || null, uploaderId || null, fileName, filePath, mimeType || null, fileSize || null]
-  );
-  return result.rows[0];
-}
 
-async function attachFilesToComment({ commentId, attachmentIds, taskId }) {
-  if (!attachmentIds || !attachmentIds.length) return;
-  await pool.query(
-    `UPDATE task_attachments SET comment_id = $1
-     WHERE id = ANY($2::int[]) AND task_id = $3`,
-    [commentId, attachmentIds, taskId]
-  );
-}
 
 async function createActivity({ taskId, actorId, action, metadata }) {
   await pool.query(
@@ -312,8 +287,6 @@ module.exports = {
   updateSubtask,
   deleteSubtask,
   createComment,
-  createAttachment,
-  attachFilesToComment,
   createActivity,
   deleteTask,
 };

@@ -475,7 +475,7 @@ function Showcase() {
             <div className="absolute inset-[-200%] animate-spin [background:conic-gradient(from_0deg,transparent_75%,oklch(0.68_0.22_295)_90%,transparent_100%)] pointer-events-none" style={{ animationDuration: '4s' }} />
             <div
               ref={mockupRef}
-              className="relative z-10 w-full h-full overflow-auto custom-scrollbar bg-card-glass rounded-[inherit]"
+              className="relative z-10 w-full h-full overflow-auto no-scrollbar bg-card-glass rounded-[inherit]"
             >
               <div className="relative w-[900px] transform-gpu">
                 <ProductMockup />

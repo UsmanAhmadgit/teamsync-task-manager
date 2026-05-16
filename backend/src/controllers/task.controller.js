@@ -96,18 +96,7 @@ async function addComment(req, res) {
   res.status(201).json({ success: true, data: comment });
 }
 
-// POST /tasks/:id/attachments
-async function addAttachment(req, res) {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'Attachment file is required' });
-  }
-  const attachment = await taskService.addAttachment({
-    taskId: req.params.id,
-    file: req.file,
-    userId: req.user.id,
-  });
-  res.status(201).json({ success: true, data: attachment });
-}
+
 
 module.exports = {
   create,
@@ -119,5 +108,4 @@ module.exports = {
   updateSubtask,
   removeSubtask,
   addComment,
-  addAttachment,
 };

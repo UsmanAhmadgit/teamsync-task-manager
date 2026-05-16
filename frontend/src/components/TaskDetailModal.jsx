@@ -15,8 +15,6 @@ export default function TaskDetailModal({
   const [loading, setLoading] = useState(false);
   const [newSubtask, setNewSubtask] = useState('');
   const [commentBody, setCommentBody] = useState('');
-  const [pendingAttachments, setPendingAttachments] = useState([]);
-  const [uploading, setUploading] = useState(false);
 
   const fetchTask = () => {
     if (!taskId) return;
@@ -68,23 +66,10 @@ export default function TaskDetailModal({
     onTaskUpdated?.();
   };
 
-  const handleUploadAttachment = async (file) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const res = await taskService.uploadAttachment(taskId, file);
-      setPendingAttachments((prev) => [...prev, res.data.data]);
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleAddComment = async () => {
     if (!commentBody.trim()) return;
-    const attachmentIds = pendingAttachments.map((item) => item.id);
-    await taskService.addComment(taskId, { body: commentBody.trim(), attachment_ids: attachmentIds });
+    await taskService.addComment(taskId, { body: commentBody.trim(), attachment_ids: [] });
     setCommentBody('');
-    setPendingAttachments([]);
     fetchTask();
   };
 
@@ -192,21 +177,6 @@ export default function TaskDetailModal({
                         {comment.author_name || 'Unknown'} · {new Date(comment.created_at).toLocaleString()}
                       </div>
                       <p className="mt-2 text-sm">{comment.body}</p>
-                      {attachmentsByComment.get(comment.id)?.length ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {attachmentsByComment.get(comment.id).map((file) => (
-                            <a
-                              key={file.id}
-                              href={file.file_path.startsWith('http') ? file.file_path : `${apiBase}${file.file_path}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                              {file.file_name}
-                            </a>
-                          ))}
-                        </div>
-                      ) : null}
                     </div>
                   )) : (
                     <p className="text-xs text-muted-foreground">No comments yet.</p>
@@ -221,29 +191,14 @@ export default function TaskDetailModal({
                     rows={3}
                     className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                   />
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <label className="text-xs text-muted-foreground">
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={(event) => handleUploadAttachment(event.target.files?.[0])}
-                      />
-                      <span className="cursor-pointer rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted-foreground hover:text-foreground">
-                        {uploading ? 'Uploading...' : 'Attach file'}
-                      </span>
-                    </label>
-                    {pendingAttachments.map((file) => (
-                      <span key={file.id} className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs text-muted-foreground">
-                        {file.file_name}
-                      </span>
-                    ))}
-                    <button
-                      onClick={handleAddComment}
-                      className="ml-auto rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground"
-                    >
-                      Post
-                    </button>
-                  </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={handleAddComment}
+                        className="ml-auto rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground"
+                      >
+                        Post
+                      </button>
+                    </div>
                 </div>
               </div>
             </div>
