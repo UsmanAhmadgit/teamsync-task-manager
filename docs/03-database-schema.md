@@ -13,6 +13,11 @@
 | `teams` | Teams created by users |
 | `team_members` | Many-to-many join table — users ↔ teams with roles |
 | `tasks` | Tasks belonging to teams, assigned to users |
+| `task_assignees` | Multi-user task assignments |
+| `task_subtasks` | Checklist items for tasks |
+| `task_comments` | Task discussion messages |
+| `task_attachments` | Files attached to tasks/comments |
+| `task_activity` | Automated task activity log |
 
 ---
 
@@ -78,6 +83,71 @@ users (1) ──────── (many) tasks           [created_by]
 | created_by | INTEGER | FK → users(id) |
 | created_at | TIMESTAMP | DEFAULT NOW() |
 
+### task_assignees
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
+| user_id | INTEGER | FK → users(id), ON DELETE CASCADE |
+| assigned_by | INTEGER | FK → users(id), ON DELETE SET NULL |
+| assigned_at | TIMESTAMP | DEFAULT NOW() |
+| | | UNIQUE(task_id, user_id) |
+
+### task_subtasks
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
+| title | VARCHAR(200) | NOT NULL |
+| is_done | BOOLEAN | DEFAULT false |
+| sort_order | INTEGER | DEFAULT 0 |
+| created_by | INTEGER | FK → users(id), ON DELETE SET NULL |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
+### task_comments
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
+| author_id | INTEGER | FK → users(id), ON DELETE SET NULL |
+| body | TEXT | NOT NULL |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
+### task_attachments
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
+| comment_id | INTEGER | FK → task_comments(id), ON DELETE SET NULL |
+| uploader_id | INTEGER | FK → users(id), ON DELETE SET NULL |
+| file_name | VARCHAR(255) | NOT NULL |
+| file_path | TEXT | NOT NULL |
+| mime_type | VARCHAR(100) | nullable |
+| file_size | INTEGER | nullable |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
+### task_activity
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
+| actor_id | INTEGER | FK → users(id), ON DELETE SET NULL |
+| action | VARCHAR(50) | NOT NULL |
+| metadata | JSONB | DEFAULT '{}' |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
+### notifications
+| Column | Type | Constraints |
+|---|---|---|
+| id | SERIAL | PRIMARY KEY |
+| user_id | INTEGER | FK → users(id), ON DELETE CASCADE |
+| type | VARCHAR(50) | NOT NULL |
+| title | VARCHAR(255) | NOT NULL |
+| message | TEXT | nullable |
+| related_id | INTEGER | nullable (task_id or team_id) |
+| is_read | BOOLEAN | DEFAULT false |
+| created_at | TIMESTAMP | DEFAULT NOW() |
+
 ---
 
 ## Indexes
@@ -89,3 +159,4 @@ users (1) ──────── (many) tasks           [created_by]
 | tasks | idx_tasks_team_id | team_id |
 | tasks | idx_tasks_assigned_to | assigned_to |
 | tasks | idx_tasks_status | status |
+| notifications | idx_notifications_user_id | user_id |

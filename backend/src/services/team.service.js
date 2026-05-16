@@ -10,6 +10,7 @@ const {
   findMembership,
   deleteTeam,
 } = require('../models/team.model');
+const { createNotification } = require('../models/notification.model');
 
 // Creates a team and auto-adds creator as admin
 async function createTeamWithAdmin({ name, userId }) {
@@ -36,9 +37,6 @@ async function getTeamDetails({ teamId, userId }) {
 async function removeTeam({ teamId, userId }) {
   const team = await findTeamById(teamId);
   if (!team) throw createError(404, 'Team not found');
-  if (team.created_by !== userId) {
-    throw createError(403, 'Only the team creator can delete this team');
-  }
   await deleteTeam(teamId);
 }
 
@@ -52,7 +50,17 @@ async function addMemberByEmail({ teamId, email }) {
   const existing = await findMembership({ teamId, userId: user.id });
   if (existing) throw createError(409, 'User is already a member of this team');
 
-  return addTeamMember({ teamId, userId: user.id, role: 'member' });
+  const member = await addTeamMember({ teamId, userId: user.id, role: 'member' });
+
+  await createNotification({
+    userId: user.id,
+    type: 'invite',
+    title: `You have been added to a team`,
+    message: `You were added to the team: ${team.name}`,
+    relatedId: teamId
+  });
+
+  return member;
 }
 
 async function removeMember({ teamId, targetUserId }) {

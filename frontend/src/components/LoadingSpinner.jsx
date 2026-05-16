@@ -1,9 +1,9 @@
 export default function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-950">
+    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-400 text-sm tracking-wide">Loading...</p>
+        <div className="h-12 w-12 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
+        <p className="text-sm tracking-[0.3em] text-muted-foreground">Loading</p>
       </div>
     </div>
   );

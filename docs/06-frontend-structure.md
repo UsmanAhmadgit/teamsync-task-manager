@@ -20,6 +20,8 @@
 |---|---|
 | ProtectedRoute.jsx | Blocks unauthenticated access, shows spinner during auth check |
 | TaskModal.jsx | Create + edit task in modal overlay |
+| TaskDetailModal.jsx | View detailed task info, comments, and attachments |
+| AccountSettingsModal.jsx | Update user profile settings (username, email, password) |
 | TaskCard.jsx | Displays task with priority/status badges and overdue indicator |
 | TeamCard.jsx | Displays team with role badge, links to detail page |
 | FilterBar.jsx | Team and status filter dropdowns |
@@ -37,6 +39,7 @@
 | authService.js | register, login, logout, getMe |
 | teamService.js | getAll, getById, create, delete, addMember, removeMember |
 | taskService.js | getAll (with filters), create, update, delete |
+| notificationService.js | getNotifications, markAsRead, markAllAsRead |
 
 ---
 

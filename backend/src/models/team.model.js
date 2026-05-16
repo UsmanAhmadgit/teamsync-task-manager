@@ -60,6 +60,15 @@ async function findMembership({ teamId, userId }) {
   return result.rows[0] || null;
 }
 
+async function findTeamMemberIds(teamId, userIds) {
+  if (!userIds || !userIds.length) return [];
+  const result = await pool.query(
+    'SELECT user_id FROM team_members WHERE team_id = $1 AND user_id = ANY($2::int[])',
+    [teamId, userIds]
+  );
+  return result.rows.map((row) => row.user_id);
+}
+
 async function deleteTeam(teamId) {
   await pool.query('DELETE FROM teams WHERE id = $1', [teamId]);
 }
@@ -72,5 +81,6 @@ module.exports = {
   addTeamMember,
   removeTeamMember,
   findMembership,
+  findTeamMemberIds,
   deleteTeam,
 };

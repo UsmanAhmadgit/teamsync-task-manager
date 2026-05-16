@@ -12,5 +12,6 @@ router.post('/login', loginValidator, validate, authController.login);
 // Protected routes
 router.post('/logout', isAuthenticated, authController.logout);
 router.get('/me', isAuthenticated, authController.getMe);
+router.put('/profile', isAuthenticated, asyncHandler(authController.updateProfile));
 
 module.exports = router;

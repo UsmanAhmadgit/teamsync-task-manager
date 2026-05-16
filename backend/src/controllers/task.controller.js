@@ -22,8 +22,18 @@ async function getAll(req, res) {
     teamId: req.query.teamId,
     assignedTo: req.query.assignedTo,
     status: req.query.status,
+    createdBy: req.query.createdBy,
   });
   res.status(200).json({ success: true, data: tasks });
+}
+
+// GET /tasks/:id
+async function getById(req, res) {
+  const task = await taskService.getTaskDetails({
+    taskId: req.params.id,
+    userId: req.user.id,
+  });
+  res.status(200).json({ success: true, data: task });
 }
 
 // PUT /tasks/:id
@@ -45,4 +55,69 @@ async function remove(req, res) {
   res.status(200).json({ success: true, message: 'Task deleted' });
 }
 
-module.exports = { create, getAll, update, remove };
+// POST /tasks/:id/subtasks
+async function addSubtask(req, res) {
+  const subtask = await taskService.addSubtask({
+    taskId: req.params.id,
+    title: req.body.title,
+    sortOrder: req.body.sort_order,
+    userId: req.user.id,
+  });
+  res.status(201).json({ success: true, data: subtask });
+}
+
+// PUT /tasks/:id/subtasks/:subtaskId
+async function updateSubtask(req, res) {
+  const subtask = await taskService.editSubtask({
+    subtaskId: req.params.subtaskId,
+    updates: req.body,
+    userId: req.user.id,
+  });
+  res.status(200).json({ success: true, data: subtask });
+}
+
+// DELETE /tasks/:id/subtasks/:subtaskId
+async function removeSubtask(req, res) {
+  await taskService.removeSubtask({
+    subtaskId: req.params.subtaskId,
+    userId: req.user.id,
+  });
+  res.status(200).json({ success: true, message: 'Subtask deleted' });
+}
+
+// POST /tasks/:id/comments
+async function addComment(req, res) {
+  const comment = await taskService.addComment({
+    taskId: req.params.id,
+    body: req.body.body,
+    attachmentIds: req.body.attachment_ids,
+    userId: req.user.id,
+  });
+  res.status(201).json({ success: true, data: comment });
+}
+
+// POST /tasks/:id/attachments
+async function addAttachment(req, res) {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Attachment file is required' });
+  }
+  const attachment = await taskService.addAttachment({
+    taskId: req.params.id,
+    file: req.file,
+    userId: req.user.id,
+  });
+  res.status(201).json({ success: true, data: attachment });
+}
+
+module.exports = {
+  create,
+  getAll,
+  getById,
+  update,
+  remove,
+  addSubtask,
+  updateSubtask,
+  removeSubtask,
+  addComment,
+  addAttachment,
+};

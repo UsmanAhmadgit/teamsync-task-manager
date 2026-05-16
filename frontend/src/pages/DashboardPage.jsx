@@ -1,23 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTeams } from '../hooks/useTeams';
 import { useTasks } from '../hooks/useTasks';
 import { teamService } from '../services/teamService';
 import { taskService } from '../services/taskService';
+import { notificationService } from '../services/notificationService';
+import AccountSettingsModal from '../components/AccountSettingsModal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TeamCard from '../components/TeamCard';
 import TaskCard from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
+import TaskDetailModal from '../components/TaskDetailModal';
 import FilterBar from '../components/FilterBar';
 import EmptyState from '../components/EmptyState';
 import Toast from '../components/Toast';
+import Sidebar from '../components/Sidebar';
+import ConfirmModal from '../components/ConfirmModal';
+import { LayoutList, FolderOpen } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const { teams, loading: teamsLoading, refetch: refetchTeams } = useTeams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Filters
-  const [filters, setFilters] = useState({ teamId: '', assignedTo: '', status: '' });
+  const [filters, setFilters] = useState({ teamId: '', assignedTo: '', createdBy: '', status: '' });
+  const [ownership, setOwnership] = useState('all');
+  const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState(location.state?.section || 'my');
   const { tasks, loading: tasksLoading, refetch: refetchTasks } = useTasks(filters);
 
   // Team creation
@@ -28,12 +42,107 @@ export default function DashboardPage() {
   // Task modal
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [editMode, setEditMode] = useState('full');
   const [savingTask, setSavingTask] = useState(false);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   // View toggle
-  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'teams'
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'tasks');
 
   const [toast, setToast] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
+
+  const teamRoles = teams.reduce((acc, team) => {
+    acc[team.id] = team.role;
+    return acc;
+  }, {});
+
+  const selectedTeamRole = filters.teamId ? teamRoles[filters.teamId] : null;
+  const isTeamAdmin = selectedTeamRole === 'admin';
+
+  const applyOwnership = (next) => {
+    setOwnership(next);
+    setAssigneeFilter('');
+    if (!user) return;
+    if (next === 'assigned') {
+      setFilters((prev) => ({ ...prev, assignedTo: user.id, createdBy: '' }));
+      return;
+    }
+    if (next === 'created') {
+      setFilters((prev) => ({ ...prev, createdBy: user.id, assignedTo: '' }));
+      return;
+    }
+    setFilters((prev) => ({ ...prev, assignedTo: '', createdBy: '' }));
+  };
+
+  const handleAssigneeFilterChange = (value) => {
+    if (!value) {
+      setAssigneeFilter('');
+      applyOwnership(ownership);
+      return;
+    }
+    setAssigneeFilter(value);
+    setOwnership('all');
+    setFilters((prev) => ({ ...prev, assignedTo: value, createdBy: '' }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({ teamId: '', assignedTo: '', createdBy: '', status: '' });
+    setOwnership('all');
+    setAssigneeFilter('');
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [activeSection]);
+
+  const fetchNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      const res = await notificationService.getAll();
+      setNotifications(res.data.data);
+    } catch (err) {
+      setToast({ message: 'Failed to load notifications', type: 'error' });
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (err) {
+      setToast({ message: 'Failed to mark as read', type: 'error' });
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+    } catch (err) {
+      setToast({ message: 'Failed to mark all as read', type: 'error' });
+    }
+  };
+
+  useEffect(() => {
+    if (!filters.teamId || !isTeamAdmin) {
+      setTeamMembers([]);
+      setAssigneeFilter('');
+      return;
+    }
+
+    setMembersLoading(true);
+    teamService.getById(filters.teamId)
+      .then((res) => setTeamMembers(res.data.data?.members || []))
+      .catch(() => setTeamMembers([]))
+      .finally(() => setMembersLoading(false));
+  }, [filters.teamId, isTeamAdmin]);
 
   if (!user) return <LoadingSpinner />;
 
@@ -66,6 +175,7 @@ export default function DashboardPage() {
       }
       setShowTaskModal(false);
       setEditingTask(null);
+      setEditMode('full');
       refetchTasks();
     } catch (err) {
       const msg = err.response?.data?.errors?.[0]?.msg || err.response?.data?.message || 'Failed to save task';
@@ -75,190 +185,346 @@ export default function DashboardPage() {
     }
   };
 
-  const handleEditTask = (task) => {
+  const handleEditTask = (task, mode = 'full') => {
     setEditingTask(task);
+    setEditMode(mode);
     setShowTaskModal(true);
   };
 
-  const handleDeleteTask = async (taskId) => {
-    if (!confirm('Delete this task?')) return;
+  const handleOpenTask = (task) => {
+    setSelectedTaskId(task.id);
+    setShowTaskDetail(true);
+  };
+
+  const handleDeleteTask = (taskId) => {
+    setTaskToDelete(taskId);
+  };
+
+  const executeDeleteTask = async () => {
+    if (!taskToDelete) return;
     try {
-      await taskService.delete(taskId);
+      await taskService.delete(taskToDelete);
       setToast({ message: 'Task deleted', type: 'success' });
       refetchTasks();
     } catch (err) {
       setToast({ message: err.response?.data?.message || 'Failed to delete task', type: 'error' });
+    } finally {
+      setTaskToDelete(null);
     }
   };
 
+  const getTaskPermissions = (task) => {
+    const isAdmin = teamRoles[task.team_id] === 'admin';
+    const isCreator = task.created_by === user.id;
+    const isAssignee = task.assignees?.some((member) => member.id === user.id);
+    const canEdit = isAdmin || isCreator;
+    const canStatusOnly = !canEdit && isAssignee && task.assigned_by_admin;
+    return { canEdit, canStatusOnly, canDelete: isAdmin || isCreator };
+  };
+
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="relative min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-hero" />
+      <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern" />
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Task Modal */}
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={executeDeleteTask}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+      />
+
       <TaskModal
         isOpen={showTaskModal}
-        onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+          setEditMode('full');
+        }}
         onSubmit={handleTaskSubmit}
         task={editingTask}
         teams={teams}
         loading={savingTask}
+        editMode={editingTask ? editMode : 'full'}
       />
 
-      {/* Navbar */}
-      <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <h1 className="text-xl font-bold text-white tracking-tight">
-            Team<span className="text-indigo-400">Sync</span>
-          </h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400 hidden sm:inline">
-              Welcome, <span className="text-white font-medium">{user.name}</span>
-            </span>
-            <button
-              onClick={logout}
-              className="px-4 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg border border-gray-700 transition-colors cursor-pointer"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
+      <TaskDetailModal
+        taskId={selectedTaskId}
+        isOpen={showTaskDetail}
+        onClose={() => setShowTaskDetail(false)}
+        onEdit={(task, mode) => {
+          setShowTaskDetail(false);
+          handleEditTask(task, mode);
+        }}
+        onTaskUpdated={() => refetchTasks()}
+        currentUser={user}
+        teamRoles={teamRoles}
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab switcher + action buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
-                activeTab === 'tasks'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Tasks
-            </button>
-            <button
-              onClick={() => setActiveTab('teams')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
-                activeTab === 'teams'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Teams
-            </button>
-          </div>
+      <AccountSettingsModal
+        isOpen={showAccountSettings}
+        onClose={() => setShowAccountSettings(false)}
+        user={user}
+        onUpdate={(updatedUser) => {
+          // Update user in context or just let it be (if it doesn't auto-update, we might need a context method)
+          // For now, at least it saves in DB.
+        }}
+      />
 
-          <div className="flex gap-3">
-            {activeTab === 'tasks' && (
-              <button
-                onClick={() => { setEditingTask(null); setShowTaskModal(true); }}
-                className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors cursor-pointer"
-              >
-                + New Task
-              </button>
-            )}
-            {activeTab === 'teams' && (
-              <button
-                onClick={() => setShowCreateTeam(!showCreateTeam)}
-                className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors cursor-pointer"
-              >
-                {showCreateTeam ? 'Cancel' : '+ New Team'}
-              </button>
-            )}
-          </div>
-        </div>
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          <Sidebar
+            teams={teams}
+            activeSection={activeSection}
+            activeTeamId={null}
+            hasUnreadNotifications={notifications.some(n => !n.is_read)}
+            onSelectMyDashboard={() => {
+              setActiveSection('my');
+              setActiveTab('tasks');
+              applyOwnership('all');
+            }}
+            onSelectNotifications={() => {
+              setActiveSection('notifications');
+              setAssigneeFilter('');
+              setOwnership('all');
+              setFilters((prev) => ({ ...prev, assignedTo: '', createdBy: '' }));
+            }}
+            onSelectAccountSettings={() => setShowAccountSettings(true)}
+            onSelectTeam={(team) => navigate(`/teams/${team.id}`)}
+            user={user}
+            onLogout={logout}
+          />
 
-        {/* ===== TASKS TAB ===== */}
-        {activeTab === 'tasks' && (
-          <>
-            {/* Filter bar */}
-            <div className="mb-6">
-              <FilterBar
-                teams={teams}
-                filters={filters}
-                onTeamChange={(id) => setFilters((f) => ({ ...f, teamId: id }))}
-                onStatusChange={(s) => setFilters((f) => ({ ...f, status: s }))}
-                onAssigneeChange={(id) => setFilters((f) => ({ ...f, assignedTo: id }))}
-              />
-            </div>
-
-            {/* Task grid */}
-            {tasksLoading ? (
-              <LoadingSpinner />
-            ) : tasks.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl">
-                <EmptyState
-                  icon="✅"
-                  title="No tasks found"
-                  message={filters.teamId || filters.status ? 'Try adjusting your filters.' : 'Create your first task to get started.'}
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onEdit={handleEditTask}
-                    onDelete={handleDeleteTask}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ===== TEAMS TAB ===== */}
-        {activeTab === 'teams' && (
-          <>
-            {/* Create team form */}
-            {showCreateTeam && (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <form onSubmit={handleCreateTeam} className="flex gap-3">
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    placeholder="Enter team name"
-                    required
-                    autoFocus
-                    className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
+          <section className="flex flex-col gap-6">
+            <header className="rounded-3xl border border-border bg-card-glass p-6 shadow-card">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-primary">Workspace</p>
+                  <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    Welcome back,{' '}
+                    <span className="font-display italic text-gradient">{user.name}</span>
+                  </h1>
+                  <p className="mt-2 text-sm text-muted-foreground">Focus on the work that moves your team forward today.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {activeSection !== 'notifications' && activeTab === 'tasks' && (
+                    <button
+                      onClick={() => {
+                        setEditingTask(null);
+                        setEditMode('full');
+                        setShowTaskModal(true);
+                      }}
+                      className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:shadow-glow cursor-pointer"
+                    >
+                      + New Task
+                    </button>
+                  )}
+                  {activeSection !== 'notifications' && activeTab === 'teams' && (
+                    <button
+                      onClick={() => setShowCreateTeam(!showCreateTeam)}
+                      className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:shadow-glow cursor-pointer"
+                    >
+                      {showCreateTeam ? 'Cancel' : '+ New Team'}
+                    </button>
+                  )}
                   <button
-                    type="submit"
-                    disabled={creatingTeam}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-lg transition-colors cursor-pointer shrink-0"
+                    onClick={logout}
+                    className="rounded-full border border-border bg-surface px-5 py-2 text-sm text-foreground transition hover:border-primary/50 hover:text-primary"
                   >
-                    {creatingTeam ? 'Creating...' : 'Create'}
+                    Logout
                   </button>
-                </form>
+                </div>
+              </div>
+            </header>
+
+            {activeSection !== 'notifications' && (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card-glass p-1">
+                  <button
+                    onClick={() => setActiveTab('tasks')}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                      activeTab === 'tasks'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Tasks
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('teams')}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                      activeTab === 'teams'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Teams
+                  </button>
+                </div>
+
+                {activeTab === 'tasks' && (
+                  <div className="rounded-full border border-border bg-card-glass px-4 py-2 text-xs text-muted-foreground">
+                    Keep tasks aligned with realtime context.
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Teams grid */}
-            {teamsLoading ? (
-              <LoadingSpinner />
-            ) : teams.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl">
-                <EmptyState
-                  icon="🏢"
-                  title="No teams yet"
-                  message="Create your first team to start collaborating."
-                />
+            {activeSection === 'notifications' ? (
+              <div className="rounded-2xl border border-border bg-card-glass p-6 shadow-card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Notifications</h2>
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-xs text-primary hover:text-primary/80 transition cursor-pointer"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+                {notificationsLoading ? (
+                  <LoadingSpinner />
+                ) : notifications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No notifications yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`flex items-center justify-between rounded-xl border p-4 transition ${
+                          n.is_read
+                            ? 'border-border bg-surface/50 opacity-75'
+                            : 'border-primary/30 bg-surface shadow-glow'
+                        }`}
+                      >
+                        <div>
+                          <p className={`text-sm ${n.is_read ? 'text-foreground' : 'font-semibold text-foreground'}`}>
+                            {n.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
+                          <p className="text-xs text-muted-foreground/50 mt-1">
+                            {new Date(n.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                        {!n.is_read && (
+                          <button
+                            onClick={() => handleMarkAsRead(n.id)}
+                            className="text-xs text-primary hover:text-primary/80 transition cursor-pointer"
+                          >
+                            Mark as read
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {teams.map((team) => (
-                  <TeamCard key={team.id} team={team} />
-                ))}
-              </div>
+            ) : activeTab === 'tasks' && (
+              <>
+                <div>
+                  <FilterBar
+                    teams={teams}
+                    filters={filters}
+                    onTeamChange={(id) => {
+                      setFilters((f) => ({ ...f, teamId: id }));
+                      setAssigneeFilter('');
+                    }}
+                    onStatusChange={(s) => setFilters((f) => ({ ...f, status: s }))}
+                    onOwnershipChange={applyOwnership}
+                    ownership={ownership}
+                    assignees={membersLoading ? [] : teamMembers}
+                    assigneeFilter={assigneeFilter}
+                    onAssigneeFilterChange={handleAssigneeFilterChange}
+                    isTeamAdmin={isTeamAdmin}
+                    onClearFilters={handleClearFilters}
+                  />
+                </div>
+
+                {tasksLoading ? (
+                  <LoadingSpinner />
+                ) : tasks.length === 0 ? (
+                  <div className="rounded-2xl border border-border bg-card-glass">
+                    <EmptyState
+                      icon={<LayoutList className="h-8 w-8" />}
+                      title="No tasks found"
+                      message={filters.teamId || filters.status ? 'Try adjusting your filters.' : 'Create your first task to get started.'}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {[...tasks].sort((a, b) => {
+                      if (!a.due_date && !b.due_date) return 0;
+                      if (!a.due_date) return 1;
+                      if (!b.due_date) return -1;
+                      return new Date(a.due_date) - new Date(b.due_date);
+                    }).map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={(taskItem, mode) => handleEditTask(taskItem, mode)}
+                        onDelete={handleDeleteTask}
+                        onOpen={handleOpenTask}
+                        canEdit={getTaskPermissions(task).canEdit}
+                        statusOnly={getTaskPermissions(task).canStatusOnly}
+                        canDelete={getTaskPermissions(task).canDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </main>
+
+            {activeSection !== 'notifications' && activeTab === 'teams' && (
+              <>
+                {showCreateTeam && (
+                  <div className="rounded-2xl border border-border bg-card-glass p-6 shadow-card">
+                    <form onSubmit={handleCreateTeam} className="flex flex-col gap-3 sm:flex-row">
+                      <input
+                        type="text"
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        placeholder="Enter team name"
+                        required
+                        autoFocus
+                        className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
+                      />
+                      <button
+                        type="submit"
+                        disabled={creatingTeam}
+                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
+                      >
+                        {creatingTeam ? 'Creating...' : 'Create'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {teamsLoading ? (
+                  <LoadingSpinner />
+                ) : teams.length === 0 ? (
+                  <div className="rounded-2xl border border-border bg-card-glass">
+                    <EmptyState
+                      icon={<FolderOpen className="h-8 w-8" />}
+                      title="No teams yet"
+                      message="Create your first team to start collaborating."
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {teams.map((team) => (
+                      <TeamCard key={team.id} team={team} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
