@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [wakingUp, setWakingUp] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -24,6 +25,12 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setWakingUp(false);
+
+    // Show waking message if server takes > 5 seconds (Render free tier cold start)
+    const timer = setTimeout(() => {
+      setWakingUp(true);
+    }, 5000);
 
     try {
       const res = await authService.login({ email, password });
@@ -33,6 +40,8 @@ export default function LoginPage() {
       const message = err.response?.data?.message || 'Login failed. Please try again.';
       setError(message);
     } finally {
+      clearTimeout(timer);
+      setWakingUp(false);
       setLoading(false);
     }
   };
@@ -92,6 +101,11 @@ export default function LoginPage() {
                 {error && (
                   <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg text-center animate-fade-up">
                     {error}
+                  </div>
+                )}
+                {wakingUp && !error && (
+                  <div className="text-sm text-amber-500 bg-amber-500/10 p-3 rounded-lg text-center animate-fade-up">
+                    The server is waking up from sleep (Render free tier). This may take up to 60 seconds. Please wait...
                   </div>
                 )}
                 <div>
