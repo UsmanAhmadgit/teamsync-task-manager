@@ -117,7 +117,7 @@
 
 ### GET /tasks/:id
 - **Auth:** Yes (must be team member)
-- **200:** Returns task details with assignees, subtasks, comments, attachments, activity
+- **200:** Returns task details with assignees, subtasks, comments, activity
 
 ### POST /tasks/:id/subtasks
 - **Auth:** Yes (must be team member)
@@ -135,13 +135,8 @@
 
 ### POST /tasks/:id/comments
 - **Auth:** Yes (must be team member)
-- **Body:** `{ "body": "This is blocked on API keys", "attachment_ids": [5, 6] }`
+- **Body:** `{ "body": "This is blocked on API keys" }`
 - **201:** Returns created comment
-
-### POST /tasks/:id/attachments
-- **Auth:** Yes (must be team member)
-- **Body:** Multipart form with `file`
-- **201:** Returns attachment metadata with file_path
 
 ### PUT /tasks/:id
 - **Auth:** Yes (must be team member)

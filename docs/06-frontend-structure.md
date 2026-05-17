@@ -20,7 +20,7 @@
 |---|---|
 | ProtectedRoute.jsx | Blocks unauthenticated access, shows spinner during auth check |
 | TaskModal.jsx | Create + edit task in modal overlay |
-| TaskDetailModal.jsx | View detailed task info, comments, and attachments |
+| TaskDetailModal.jsx | View detailed task info and comments |
 | AccountSettingsModal.jsx | Update user profile settings (username, email, password) |
 | TaskCard.jsx | Displays task with priority/status badges and overdue indicator |
 | TeamCard.jsx | Displays team with role badge, links to detail page |
