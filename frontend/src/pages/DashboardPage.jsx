@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [editingTask, setEditingTask] = useState(null);
   const [editMode, setEditMode] = useState('full');
   const [savingTask, setSavingTask] = useState(false);
+  const [modalError, setModalError] = useState('');
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
@@ -179,7 +180,7 @@ export default function DashboardPage() {
       refetchTasks();
     } catch (err) {
       const msg = err.response?.data?.errors?.[0]?.msg || err.response?.data?.message || 'Failed to save task';
-      setToast({ message: msg, type: 'error' });
+      setModalError(msg);
     } finally {
       setSavingTask(false);
     }
@@ -188,6 +189,7 @@ export default function DashboardPage() {
   const handleEditTask = (task, mode = 'full') => {
     setEditingTask(task);
     setEditMode(mode);
+    setModalError('');
     setShowTaskModal(true);
   };
 
@@ -245,12 +247,14 @@ export default function DashboardPage() {
           setShowTaskModal(false);
           setEditingTask(null);
           setEditMode('full');
+          setModalError('');
         }}
         onSubmit={handleTaskSubmit}
         task={editingTask}
         teams={teams}
         loading={savingTask}
         editMode={editingTask ? editMode : 'full'}
+        error={modalError}
       />
 
       <TaskDetailModal
@@ -317,6 +321,7 @@ export default function DashboardPage() {
                       onClick={() => {
                         setEditingTask(null);
                         setEditMode('full');
+                        setModalError('');
                         setShowTaskModal(true);
                       }}
                       className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:shadow-glow cursor-pointer"

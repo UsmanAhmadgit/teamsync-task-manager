@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { teamService } from '../services/teamService';
 import CustomSelect from './CustomSelect';
 
-export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, loading, defaultTeamId, editMode = 'full' }) {
+export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, loading, defaultTeamId, editMode = 'full', error }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -116,6 +116,12 @@ export default function TaskModal({ isOpen, onClose, onSubmit, task, teams, load
               {isEditing ? 'Edit Task' : 'Create Task'}
             </h2>
           </div>
+
+          {error && (
+            <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs font-medium text-destructive">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isStatusOnly && (
