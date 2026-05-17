@@ -223,7 +223,7 @@ function ProductMockup() {
 
           <section className="flex flex-col gap-6">
             <header className="rounded-3xl border border-border bg-card-glass p-6 shadow-card text-left">
-              <div className="flex flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-primary">Workspace</p>
                   <h1 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -234,11 +234,11 @@ function ProductMockup() {
                     Focus on the work that moves your team forward today.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition hover:shadow-glow cursor-pointer">
+                <div className="flex w-full sm:w-auto items-center gap-3 shrink-0">
+                  <button className="flex-1 sm:flex-none rounded-full bg-primary px-3 py-2.5 sm:px-4 sm:py-1.5 text-xs font-semibold text-primary-foreground transition hover:shadow-glow cursor-pointer flex justify-center">
                     {mockTab === 'teams' ? '+ New Team' : '+ New Task'}
                   </button>
-                  <button className="rounded-full border border-border bg-surface px-4 py-1.5 text-xs text-foreground transition hover:border-primary/50 hover:text-primary cursor-pointer">
+                  <button className="flex-1 sm:flex-none rounded-full border border-border bg-surface px-3 py-2.5 sm:px-4 sm:py-1.5 text-xs text-foreground transition hover:border-primary/50 hover:text-primary cursor-pointer flex justify-center">
                     Logout
                   </button>
                 </div>
