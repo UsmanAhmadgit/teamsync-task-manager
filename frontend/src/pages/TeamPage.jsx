@@ -42,11 +42,29 @@ export default function TeamPage() {
   const [notifications, setNotifications] = useState([]);
 
   const isAdmin = team?.members?.some((m) => m.id === user?.id && m.role === 'admin');
+  const [optimisticTasks, setOptimisticTasks] = useState([]);
 
   useEffect(() => {
     fetchTeam();
     fetchNotifications();
   }, [id]);
+
+  useEffect(() => {
+    if (tasks) {
+      setOptimisticTasks(tasks);
+    }
+  }, [tasks]);
+
+  useEffect(() => {
+    const showSlowRequestMsg = () => {
+      setToast({ message: 'The server is taking longer to respond. It might be waking up from sleep (Render free tier). Please wait up to 60 seconds...', type: 'warning' });
+    };
+    
+    window.addEventListener('axios-slow-request', showSlowRequestMsg);
+    return () => {
+      window.removeEventListener('axios-slow-request', showSlowRequestMsg);
+    };
+  }, []);
 
   const fetchNotifications = async () => {
     try {
@@ -142,15 +160,26 @@ export default function TeamPage() {
   };
 
   const handleMoveTask = async (taskId, status) => {
-    const taskItem = tasks.find((task) => task.id === taskId);
+    const taskItem = optimisticTasks.find((task) => task.id === taskId);
     if (taskItem && !canMoveTask(taskItem)) {
       setToast({ message: 'You can only update status for admin-assigned tasks.', type: 'error' });
       return;
     }
+
+    // Optimistic update
+    const previousTasks = [...optimisticTasks];
+    setOptimisticTasks((prev) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, status } : task
+      )
+    );
+
     try {
       await taskService.update(taskId, { status });
       refetchTasks();
     } catch (err) {
+      // Revert on error
+      setOptimisticTasks(previousTasks);
       setToast({ message: err.response?.data?.message || 'Failed to update status', type: 'error' });
     }
   };
@@ -301,7 +330,7 @@ export default function TeamPage() {
                 <LoadingSpinner />
               ) : (
                 <KanbanBoard
-                  tasks={tasks}
+                  tasks={optimisticTasks}
                   onMoveTask={handleMoveTask}
                   onOpenTask={handleOpenTask}
                   canMoveTask={canMoveTask}
@@ -312,13 +341,13 @@ export default function TeamPage() {
             {activeTab === 'list' && (
               tasksLoading ? (
                 <LoadingSpinner />
-              ) : tasks.length === 0 ? (
+              ) : optimisticTasks.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-card-glass">
                   <EmptyState icon={<LayoutList className="h-8 w-8" />} title="No tasks" message="Create your first task for this team." />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {tasks.map((task) => {
+                  {optimisticTasks.map((task) => {
                     const { canEdit, canStatusOnly } = getTaskPermissions(task);
                     return (
                       <TaskCard

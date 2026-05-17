@@ -101,6 +101,17 @@ export default function DashboardPage() {
     fetchNotifications();
   }, [activeSection]);
 
+  useEffect(() => {
+    const showSlowRequestMsg = () => {
+      setToast({ message: 'The server is taking longer to respond. It might be waking up from sleep (Render free tier). Please wait up to 60 seconds...', type: 'warning' });
+    };
+    
+    window.addEventListener('axios-slow-request', showSlowRequestMsg);
+    return () => {
+      window.removeEventListener('axios-slow-request', showSlowRequestMsg);
+    };
+  }, []);
+
   const fetchNotifications = async () => {
     setNotificationsLoading(true);
     try {
