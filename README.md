@@ -12,7 +12,7 @@ A full-stack team task management and collaboration platform built with session-
 | Backend | Node.js, Express, PassportJS |
 | Database | PostgreSQL |
 | Session Store | connect-pg-simple |
-| Deployment | GCP Compute Engine (backend) + Firebase Hosting (frontend) |
+| Deployment | Render (backend) + Vercel (frontend) |
 
 ---
 
@@ -90,6 +90,8 @@ CREATE DATABASE teamsync_db OWNER teamsync_user;
 ```
 ```bash
 psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/001_init.sql
+psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/002_task_enhancements.sql
+psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/003_notifications.sql
 ```
 
 See [docs/10-environment-setup.md](docs/10-environment-setup.md) for the full setup guide.

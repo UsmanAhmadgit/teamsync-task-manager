@@ -68,13 +68,15 @@ GRANT ALL PRIVILEGES ON DATABASE teamsync_db TO teamsync_user;
 \q
 ```
 
-### Run the migration file
+### Run the migration files
 
 ```bash
 psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/001_init.sql
+psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/002_task_enhancements.sql
+psql -U teamsync_user -d teamsync_db -f backend/src/db/migrations/003_notifications.sql
 ```
 
-This creates all tables: `session`, `users`, `teams`, `team_members`, `tasks`.
+This creates all tables: `session`, `users`, `teams`, `team_members`, `tasks`, `task_assignees`, `task_subtasks`, `task_comments`, `notifications`.
 
 ---
 

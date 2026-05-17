@@ -432,7 +432,9 @@ function Showcase() {
 
   useEffect(() => {
     if (mockupRef.current) {
-      mockupRef.current.scrollLeft = 300; // Scroll past the sidebar and a bit more
+      if (window.innerWidth >= 768) {
+        mockupRef.current.scrollLeft = 300; // Scroll past the sidebar and a bit more
+      }
     }
   }, []);
 

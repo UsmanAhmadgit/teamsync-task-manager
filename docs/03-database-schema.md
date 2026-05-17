@@ -16,7 +16,6 @@
 | `task_assignees` | Multi-user task assignments |
 | `task_subtasks` | Checklist items for tasks |
 | `task_comments` | Task discussion messages |
-| `task_attachments` | Files attached to tasks/comments |
 | `task_activity` | Automated task activity log |
 
 ---
@@ -111,19 +110,6 @@ users (1) ──────── (many) tasks           [created_by]
 | task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
 | author_id | INTEGER | FK → users(id), ON DELETE SET NULL |
 | body | TEXT | NOT NULL |
-| created_at | TIMESTAMP | DEFAULT NOW() |
-
-### task_attachments
-| Column | Type | Constraints |
-|---|---|---|
-| id | SERIAL | PRIMARY KEY |
-| task_id | INTEGER | FK → tasks(id), ON DELETE CASCADE |
-| comment_id | INTEGER | FK → task_comments(id), ON DELETE SET NULL |
-| uploader_id | INTEGER | FK → users(id), ON DELETE SET NULL |
-| file_name | VARCHAR(255) | NOT NULL |
-| file_path | TEXT | NOT NULL |
-| mime_type | VARCHAR(100) | nullable |
-| file_size | INTEGER | nullable |
 | created_at | TIMESTAMP | DEFAULT NOW() |
 
 ### task_activity
