@@ -18,9 +18,14 @@ function login(req, res, next) {
 
     req.login(user, (err) => {
       if (err) return next(err);
-      res.status(200).json({
-        success: true,
-        data: { id: user.id, name: user.name, email: user.email },
+      
+      // Explicitly save session to avoid race conditions with database store
+      req.session.save((saveErr) => {
+        if (saveErr) return next(saveErr);
+        res.status(200).json({
+          success: true,
+          data: { id: user.id, name: user.name, email: user.email },
+        });
       });
     });
   })(req, res, next);

@@ -17,6 +17,9 @@ const notificationRoutes = require('./routes/notification.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for secure cookies on Render (required for sameSite: 'none')
+app.set('trust proxy', 1);
+
 // 1. Body parsing
 app.use(express.json());
 
