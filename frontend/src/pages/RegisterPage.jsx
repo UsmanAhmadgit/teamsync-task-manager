@@ -10,13 +10,19 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setWakingUp(false);
     setToast(null);
+
+    const timer = setTimeout(() => {
+      setWakingUp(true);
+    }, 5000);
 
     try {
       await authService.register({ name, email, password });
@@ -28,6 +34,8 @@ export default function RegisterPage() {
       const message = data?.errors?.[0]?.msg || data?.message || 'Registration failed. Please try again.';
       setToast({ message, type: 'error' });
     } finally {
+      clearTimeout(timer);
+      setWakingUp(false);
       setLoading(false);
     }
   };
@@ -51,6 +59,11 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                {wakingUp && (
+                  <div className="text-sm text-amber-500 bg-amber-500/10 p-3 rounded-lg text-center animate-fade-up">
+                    The server is waking up from sleep (Render free tier). This may take up to 60 seconds. Please wait...
+                  </div>
+                )}
                 <div>
                   <label htmlFor="register-name" className="block text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                     Full Name
